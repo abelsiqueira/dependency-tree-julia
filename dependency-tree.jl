@@ -18,7 +18,7 @@ end
 
 function jso_deps()
   pkgs = jso_pkgs()
-  pkgs = setdiff(pkgs, ["qr_mumps", "QPSReader", "SuiteSparseMatrixCollection", "QuadraticModels", "JHSOSuite"])
+  pkgs = setdiff(pkgs, ["qr_mumps", "QPSReader", "SuiteSparseMatrixCollection", "QuadraticModels", "JSOSuite"])
   #pkgs = ["LinearOperators", "Krylov", "NLPModels", "NLPModelsIpopt", "CUTEst"]
   deps = dependency_tree(pkgs, limitto=pkgs)
   return deps
@@ -148,8 +148,7 @@ function tikz_draw(deps, depth, weight)
       for j in J
         san_orig = lowercase(replace(pkgs[j], "_" => ""))
         Δd = abs(depth[j] - depth[i])
-        style = Δd > 1 ? "dashed" : "solid"
-        println(f, "\\draw[->,$style] ($san_orig) to [in=180,out=0,looseness=0.3] ($san_dest);")
+        println(f, "\\draw[->,gray] ($san_orig) to [in=180,out=0,looseness=0.3] ($san_dest);")
       end
     end
     println(f, "\\end{scope}")
