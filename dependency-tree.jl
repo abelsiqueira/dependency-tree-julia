@@ -29,6 +29,7 @@ dependency_tree(pkg :: String; limitto=[]) = dependency_tree([pkg], limitto=limi
 function dependency_tree(pkgs :: Array{<: String}; limitto=[])
   todo = copy(pkgs)
   deps = Dict()
+  versions = Dict()
   ignored = String[]
   fname = tempname()
   while length(todo) > 0
@@ -37,6 +38,7 @@ function dependency_tree(pkgs :: Array{<: String}; limitto=[])
     url = reg_url(pkg)
     try
       download(url, fname)
+      download(replace(url, "Deps" => "Versions"), fname * "_v")
     catch ex
       yellow("$pkg not found in Registry, possible a stdlib package")
       deps[pkg] = []
@@ -61,8 +63,9 @@ function dependency_tree(pkgs :: Array{<: String}; limitto=[])
         push!(todo, p)
       end
     end
+    versions[pkg] = sort(VersionNumber.(keys(TOML.parsefile(fname * "_v"))))[end]
   end
-  return deps
+  return deps, versions
 end
 
 function depth_computation(deps :: Dict)
@@ -123,7 +126,7 @@ function weight_computation(deps, depth)
   return weight
 end
 
-function tikz_draw(deps, depth, weight)
+function tikz_draw(deps, depth, weight, versions)
   pkgs = sort(collect(keys(deps)))
   #S = sortperm(weight)
   #depth = depth[S]
@@ -135,10 +138,11 @@ function tikz_draw(deps, depth, weight)
       J = findall(depth .== d)
       for (c,j) = enumerate(J)
         pkg = replace(pkgs[j], "_" => "\\_")
+        v = versions[pkgs[j]]
         san = lowercase(replace(pkgs[j], "_" => ""))
         x = 6d
         y = -10 * (c - 1) / (length(J) - 1)
-        println(f, "\\node[draw,fill=white] ($san) at ($x,$y) {$pkg};")
+        println(f, "\\node[draw,fill=white] ($san) at ($x,$y) {$pkg - $v};")
       end
     end
     println(f, "\\begin{scope}[on background layer]")
@@ -158,7 +162,7 @@ end
 
 #deps = dependency_tree("NLPModels")
 #pkgs = jso_pkgs()
-deps = jso_deps()
+#deps, versions = jso_deps()
 depth = depth_computation(deps)
 weight = weight_computation(deps, depth)
-tikz_draw(deps, depth, weight)
+tikz_draw(deps, depth, weight, versions)
