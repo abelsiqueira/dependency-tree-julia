@@ -162,7 +162,7 @@ end
 
 #deps = dependency_tree("NLPModels")
 #pkgs = jso_pkgs()
-#deps, versions = jso_deps()
+deps, versions = jso_deps()
 depth = depth_computation(deps)
 weight = weight_computation(deps, depth)
 tikz_draw(deps, depth, weight, versions)
